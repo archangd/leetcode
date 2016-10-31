@@ -1,96 +1,67 @@
-#include <stdio.h>
-
 int min(int a, int b)
 {
 	return a < b ? a : b;
 }
 
-double findMedianSortedArrays(int *nums1, int nums1Size, int *nums2, int nums2Size)
+double findOne(int *A, int m, int *B, int n, int k)
 {
-	int a, b, c, max1, max2;
-	int *n1, *n2;
-	int sum, odd;
+	int mo, no;
 
-	sum = (nums1Size + nums2Size - 1) / 2;
-	odd = (nums1Size + nums2Size) % 2;
-	a = 0;
-	if (nums1Size >= nums2Size) {
-		n1 = nums1;
-		n2 = nums2;
-		max1 = nums1Size - 1;
-		max2 = nums2Size - 1;
-		b = nums2Size - 1;
-	} else {
-		n1 = nums2;
-		n2 = nums1;
-		max1 = nums2Size - 1;
-		max2 = nums1Size - 1;
-		b = nums1Size - 1;
-	}
-
-	if (b == -1) {
-		if (odd)
-			return n1[sum];
-		else
-			return (n1[sum] + n1[sum + 1]) / 2.0;
-	}
-
-	if (n2[0] >= n1[sum]) {
-		if (odd)
-			return n1[sum];
-		else if (sum == max1)
-			return (n1[sum] + n2[0]) / 2.0;
-		else
-			return (n1[sum] + min(n2[0], n1[sum + 1])) / 2.0;
-	}
-
-	if (n2[b] <= n1[sum - b] && sum == b) {
-		if (odd)
-			return n1[0];
-		else
-			return (n2[b] + n1[0]) / 2.0;
-	}
-
-	if (n2[b] <= n1[sum - b - 1]) {
-		if (odd)
-			return n1[sum - b - 1];
-		else
-			return (n1[sum - b - 1] + n1[sum - b]) / 2.0;
-	}
-
-	if (n2[b] >= n1[sum - b - 1] && n2[b] <= n1[sum - b]) {
-		if (odd)
-			return n2[b];
-		else
-			return (n2[b] + n1[sum - b]) / 2.0;
-	}
-
-	while (42) {
-		c = (a + b) / 2;
-		if ((n2[c] >= n1[sum - c - 1]) && (n2[c] <= n1[sum - c])) {
-			if (odd)
-				return n2[c];
-			else if (c != max2)
-				return (n2[c] + min(n2[c + 1], n1[sum - c])) / 2.0;
-			else
-				return (n2[c] + n1[sum - c]) / 2.0;
-		}
-		else if (n2[c] > n1[sum - c])
-			b = c;
-		else if (a == c) {
-			if (odd)
-				return n1[sum - c - 1];
-			else
-				return (n1[sum - c - 1] + min(n1[sum - c], n2[c + 1])) / 2.0;
-		} else
-			a = c;
-	}
+	if (m < n)
+		return findOne(B, n, A, m, k);
+	if (n == 0)
+		return A[k - 1];
+	if (k == 1)
+		return min(A[0], B[0]);
+	
+	no = (k / 2 < n)? (k / 2) : n;
+	mo = k - no;
+	
+	if (A[mo - 1] == B[no - 1])
+		return A[mo - 1];
+	else if (A[mo - 1] > B[no - 1])
+		return findOne(A, m, B + no, n - no, k - no);
+	else // (A[mo - 1] < B[no - 1])
+		return findOne(A + mo, m - mo, B, n, k - mo);
 }
 
-
-int main()
+double findTwo(int *A, int m, int *B, int n, int k)
 {
-	int a[] = {2};
-	int b[] = {1, 3, 4};
-	printf("%f\n", findMedianSortedArrays(a, 1, b, 3));
+	int mo, no;
+
+	if (m < n)
+		return findTwo(B, n, A, m, k);
+	if (n == 0)
+		return (A[k - 1] + A[k]) / 2.0;
+	if (k == 1) {
+		if ((A[0] < B[0]) && m > 1)
+			return (A[0] + min(B[0], A[1])) / 2.0;
+		else if (m == 1 || n == 1)
+			return (B[0] + A[0]) / 2.0;
+		else
+			return (B[0] + min(A[0], B[1])) / 2.0;
+	}
+	
+	no = (k / 2 < n)? (k / 2) : n;
+	mo = k - no;
+	
+	if (A[mo - 1] == B[no - 1]) {
+		if (n > no)
+			return (A[mo - 1] + min(A[mo], B[no])) / 2.0;
+		else
+			return (A[mo - 1] + A[mo]) / 2.0;
+	}
+	else if (A[mo - 1] > B[no - 1])
+		return findTwo(A, m, B + no, n - no, k - no);
+	else // (A[mo - 1] < B[no - 1])
+		return findTwo(A + mo, m - mo, B, n, k - mo);
+}
+
+double findMedianSortedArrays(int *nums1, int nums1Size, int *nums2, int nums2Size)
+{
+	int sum = nums1Size + nums2Size;
+	if (sum % 2)
+		return findOne(nums1, nums1Size, nums2, nums2Size, (sum + 1) / 2);
+	else
+		return findTwo(nums1, nums1Size, nums2, nums2Size, sum / 2);
 }
